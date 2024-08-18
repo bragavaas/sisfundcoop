@@ -1,0 +1,39 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Campanha {
+  id                  Int             @id @default(autoincrement())
+  nome                String
+  dataInicio          String
+  dataTermino         String
+  numeroParticipantes Int   @default(0)
+  participantes       Participantes[]
+  brinde              String   @default("")
+  imagemDoBrinde      String   @default("")
+  registros           Registro[]
+}
+
+model Participantes {
+  id         Int       @id @default(autoincrement())
+  nome       String
+  matricula  String
+  Campanha   Campanha? @relation(fields: [campanhaId], references: [id])
+  campanhaId Int?
+}
+
+model Registro {
+  id                 Int      @id @default(autoincrement())
+  nomeDoParticipante String
+  campanhaId         Int
+  dataRetirada       String
+  horarioRetirada    String
+  campanha           Campanha @relation(fields: [campanhaId], references: [id])
+
+  @@unique([nomeDoParticipante, campanhaId])
+}
