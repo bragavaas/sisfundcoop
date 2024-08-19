@@ -1,5 +1,4 @@
 export type Participante = {
-    id: number;
     nome: string;
     matricula: string;
   };

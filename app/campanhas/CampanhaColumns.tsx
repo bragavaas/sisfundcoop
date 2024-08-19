@@ -5,7 +5,6 @@ export type Campanha = {
   dataTermino: string;
   numeroParticipantes: number;
   brinde: string;
-  imagemDoBrinde: string;
   participantes: Array<{ nome: string; matricula: string }>; // List of participants
 };
 

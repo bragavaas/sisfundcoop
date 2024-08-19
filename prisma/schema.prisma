@@ -15,25 +15,23 @@ model Campanha {
   numeroParticipantes Int   @default(0)
   participantes       Participantes[]
   brinde              String   @default("")
-  imagemDoBrinde      String   @default("")
   registros           Registro[]
+  @@index([id], map: "campanha_id_unique")
 }
 
 model Participantes {
   id         Int       @id @default(autoincrement())
-  nome       String
-  matricula  String
-  Campanha   Campanha? @relation(fields: [campanhaId], references: [id])
+  nome       String @default("")
+  matricula  String @default("")
+  campanha   Campanha? @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
   campanhaId Int?
 }
 
 model Registro {
-  id                 Int      @id @default(autoincrement())
-  nomeDoParticipante String
-  campanhaId         Int
-  dataRetirada       String
-  horarioRetirada    String
-  campanha           Campanha @relation(fields: [campanhaId], references: [id])
-
-  @@unique([nomeDoParticipante, campanhaId])
+  id                 Int       @id @default(autoincrement())
+  nomeDoParticipante String    @default("")
+  matriculaDoParticipante String @default("")
+  dataRetirada       String    @default("")
+  horarioRetirada    String    @default("")
+  campanha           Campanha? @relation(fields: [campanhaId], references: [id])
 }

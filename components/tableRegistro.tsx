@@ -1,28 +1,43 @@
-// TableRegistro.tsx
-'use client';
-import React, { ReactNode } from "react";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@nextui-org/react";
-import { Registro, columns } from "@/app/registros/RegistroColumns";
+"use client";
+import React from "react";
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Button } from "@nextui-org/react";
+// Import the type or interface if you have one
+import { Registro } from "../app/registros/RegistroColumns";
 
-export default function TableRegistro({ registros }: { registros: Registro[] }) {
+type TableRegistroProps = {
+  registros: Registro[];
+  onEdit: (registro: Registro) => void;
+  onDelete: (id: string) => void;
+};
+
+const TableRegistro: React.FC<TableRegistroProps> = ({ registros, onEdit, onDelete }) => {
   return (
-    <Table aria-label="Table of Registros">
+    <Table aria-label="Registro Table">
       <TableHeader>
-        {columns.map(column => (
-          <TableColumn key={column.key}>{column.label}</TableColumn>
-        ))}
+        <TableColumn>Nome</TableColumn>
+        <TableColumn>Matrícula</TableColumn>
+        <TableColumn>Data da Retirada</TableColumn>
+        <TableColumn>Horário da Retirada</TableColumn>
+        <TableColumn>Campanha</TableColumn>
+        <TableColumn>Ações</TableColumn>
       </TableHeader>
-      <TableBody emptyContent={"Não há registros disponíveis"}>
-        {registros.map(registro => (
+      <TableBody>
+        {registros.map((registro) => (
           <TableRow key={registro.id}>
-            {columns.map(column => (
-              <TableCell key={column.key}>
-                {column.render ? column.render(registro) : (registro[column.key as keyof Registro] as ReactNode)}
-              </TableCell>
-            ))}
+            <TableCell>{registro.nomeDoParticipante}</TableCell>
+            <TableCell>{registro.matriculaDoParticipante}</TableCell>
+            <TableCell>{registro.dataRetirada}</TableCell>
+            <TableCell>{registro.horarioRetirada}</TableCell>
+            <TableCell>{registro.campanha?.nome}</TableCell>
+            <TableCell className="flex flex-row gap-4">
+              {/* Add Edit and Delete buttons */}
+              <Button color="danger" variant="ghost" onPress={() => onDelete(String(registro.id))}>Deletar</Button>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
   );
-}
+};
+
+export default TableRegistro;

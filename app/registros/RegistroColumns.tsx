@@ -1,15 +1,14 @@
-// RegistroColumns.ts
 import { ReactNode } from 'react';
 
 export type Registro = {
   id: number;
   nomeDoParticipante: string;
-  campanhaId: number;
+  matriculaDoParticipante: string; // Add this field as per the updated schema
   dataRetirada: string;
   horarioRetirada: string;
-  campanha: {
+  campanha?: {
     nome: string;
-  };
+  }; // Optional, to reflect that it may not always be present
 };
 
 export const columns = [
@@ -17,6 +16,11 @@ export const columns = [
     key: "nomeDoParticipante",
     label: "Nome do Participante",
     render: (registro: Registro): ReactNode => registro.nomeDoParticipante,
+  },
+  {
+    key: "matriculaDoParticipante",
+    label: "Matrícula do Participante", // Added new column for matrícula
+    render: (registro: Registro): ReactNode => registro.matriculaDoParticipante,
   },
   {
     key: "dataRetirada",
@@ -31,6 +35,6 @@ export const columns = [
   {
     key: "campanha",
     label: "Campanha",
-    render: (registro: Registro): ReactNode => registro.campanha.nome,
+    render: (registro: Registro): ReactNode => registro.campanha?.nome ?? 'N/A', // Safely handle null or undefined campanha
   },
 ];
