@@ -39,34 +39,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       break;
 
-    case 'POST':
-      if (!id) {
-        // Create a new Campanha
-        try {
-          const { nome, dataInicio, dataTermino, numeroParticipantes, brinde, participantes } = req.body;
-          if (!Array.isArray(participantes)) {
-            return res.status(400).json({ error: 'Participantes must be an array' });
-          }
-          const newCampanha = await prisma.campanha.create({
-            data: {
-              nome,
-              dataInicio,
-              dataTermino,
-              numeroParticipantes,
-              brinde,
-              participantes: {
-                create: participantes, // Ensure participantes is an array of objects
+      case 'POST':
+        if (!id) {
+          try {
+            const { nome, dataInicio, dataTermino, numeroParticipantes, brinde, participantes } = req.body;
+            
+            if (!Array.isArray(participantes)) {
+              return res.status(400).json({ error: 'Participantes must be an array' });
+            }
+            
+            const newCampanha = await prisma.campanha.create({
+              data: {
+                nome,
+                dataInicio,
+                dataTermino,
+                numeroParticipantes,
+                brinde,
+                participantes: {
+                  create: participantes, // Ensure participantes is an array of objects
+                },
               },
-            },
-          });
-          res.status(201).json(newCampanha);
-        } catch (error) {
-          res.status(500).json({ error: "Error creating campanha" });
+            });
+            
+            res.status(201).json(newCampanha);
+          } catch (error) {
+            console.error("Error creating campanha:", error); // Capture and log the error
+            res.status(500).json({ error: "Error creating campanha" });
+          }
+        } else {
+          res.status(405).json({ error: "Invalid method for this endpoint" });
         }
-      } else {
-        res.status(405).json({ error: "Invalid method for this endpoint" });
-      }
-      break;
+        break;
+      
 
     case 'PUT':
       if (id) {

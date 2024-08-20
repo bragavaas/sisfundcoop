@@ -42,10 +42,10 @@ export default function Adicionar() {
       const rows = jsonData.slice(1);
       
       rows.forEach((row: any[]) => {
-        const nome = row[0];
+        const nome = row[0]; // Trim spaces to avoid issues
         const matricula = row[1];
         if (nome && matricula) {
-          handleAddMultipleParticipantes(nome, matricula);
+          handleAddMultipleParticipantes(nome, String(matricula));
         }
       });
     };
@@ -82,9 +82,6 @@ export default function Adicionar() {
       // Clear the participant form inputs
       setNovoParticipanteNome("");
       setNovoParticipanteMatricula("");
-
-      // Close the modal
-      onOpenChange();
   };
 
   const handleAddCampanha = async () => {
@@ -96,7 +93,9 @@ export default function Adicionar() {
       participantes: participantes,
       numeroParticipantes: participantes.length,
     };
-
+  
+    console.log("Campanha Data: ", JSON.stringify(campanhaData, null, 2));
+  
     try {
       const response = await fetch("http://localhost:3000/api/campanhas", {
         method: "POST",
@@ -105,23 +104,15 @@ export default function Adicionar() {
         },
         body: JSON.stringify(campanhaData),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to add campanha");
       }
-
+  
       const result = await response.json();
       console.log("Campanha added successfully:", result);
       
-      // Redirect to /campanhas after successful addition
-      router.push('/campanhas')
-      
-      // Optionally, reset the form here
-      setCampanhaNome("");
-      setCampanhaBrinde("");
-      setCampanhaDataInicio("");
-      setCampanhaDataTermino("");
-      setParticipantes([]);
+      router.push('/campanhas');
     } catch (error) {
       console.error("Error adding campanha:", error);
     }
