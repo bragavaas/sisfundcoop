@@ -27,9 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } else {
         // Get all registros
         try {
-          const registros = await prisma.registro.findMany({
-            include: { campanha: true }, // Include the campanha relation
-          });
+          const registros = await prisma.registro.findMany({});
           res.status(200).json(registros);
         } catch (error) {
           console.error("Error fetching registros:", error);

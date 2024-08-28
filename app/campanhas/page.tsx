@@ -1,15 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Input, Button, Modal, useDisclosure, ModalContent, ModalHeader, ModalBody, ModalFooter, getKeyValue, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Input, Button, Modal, useDisclosure, ModalContent, ModalHeader, ModalBody, ModalFooter, getKeyValue, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Pagination } from "@nextui-org/react";
 import TableCampanha from "@/components/tableCampanha";
 import { Campanha, columns as campanhaColumns } from "./CampanhaColumns";
 import { Participante, columns as participanteColumns } from "./adicionar/tableColumns";
 import Link from "next/link";
 import { SearchIcon } from "@/components/icons";
+import {Accordion, AccordionItem} from "@nextui-org/react";
 
 async function getCampanhas(): Promise<Campanha[]> {
   try {
-    const response = await fetch('http://localhost:3000/api/campanhas');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/campanhas`);
     if (!response.ok) {
       throw new Error(`Error fetching campanhas: ${response.statusText}`);
     }
@@ -35,7 +36,7 @@ export default function CampanhaPage() {
       setCampanhas(fetchedCampanhas);
     }
     fetchData();
-  }, []);
+  } , []);
 
   const filteredCampanhas = campanhas.filter(campanha =>
     campanha.nome.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,7 +53,7 @@ export default function CampanhaPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/campanhas?id=${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/campanhas?id=${id}`, {
         method: 'DELETE',
       });
   
@@ -70,7 +71,7 @@ export default function CampanhaPage() {
     if (!selectedCampanha) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/campanhas?id=${selectedCampanha.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/campanhas`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -115,13 +116,13 @@ export default function CampanhaPage() {
           <div>
             <Link href="campanhas/adicionar">
               <Button className="ml-4" color="primary" variant="bordered" onPress={onNewOpen}>
-                Novo Registro
+                Nova Campanha
               </Button>
             </Link>
           </div>
         </div>
         <div style={{ width: '80vw' }}>
-          <TableCampanha campanhas={filteredCampanhas} onEdit={handleEdit} onDelete={handleDelete} />
+          <TableCampanha campanhas={filteredCampanhas} onDelete={handleDelete} />
         </div>
       </div>
 
@@ -155,36 +156,13 @@ export default function CampanhaPage() {
                   placeholder="Insira o número de participantes"
                   value={selectedCampanha.numeroParticipantes.toString()}
                   onChange={(e) => setSelectedCampanha({ ...selectedCampanha, numeroParticipantes: parseInt(e.target.value, 10) })}
+                  isDisabled={true}
                 />
-          <Table aria-label="Participantes">
-            <TableHeader columns={participanteColumns}>
-              {(column) => (
-                <TableColumn key={column.key}>
-                  {column.label}
-                </TableColumn>
-              )}
-            </TableHeader>
-            <TableBody
-              emptyContent={"Não há participantes registrados no momento"}
-              items={selectedCampanha.participantes}  // Use selectedCampanha.participantes here
-            >
-              {(item) => (
-                <TableRow key={item.matricula}>
-                  {(columnKey) => (
-                    <TableCell>
-                      {item[columnKey as keyof Participante]}
-                    </TableCell>
-                  )}
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
               </div>
             )}
-          </ModalBody>
+            </ModalBody>
           <ModalFooter>
             <Button color="danger" variant="light" onPress={onEditClose}>Fechar</Button>
-            <Button color="primary" onPress={handleSaveEdit}>Salvar</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

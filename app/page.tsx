@@ -27,8 +27,8 @@ export default function Home() {
           <Link href="/campanhas">
             <Card
               icon={BsFileTextFill}
-              iconColor="blue"
-              backgroundColor="#E7EDFF"
+              iconColor="white"
+              backgroundColor="#79A783"
               title="Campanhas"
               info=""
             />
@@ -36,9 +36,9 @@ export default function Home() {
           <Link href="/registros">
             <Card
               icon={BsFillGiftFill}
-              iconColor="blue"
-              backgroundColor="#E7EDFF"
-              title="Participantes"
+              iconColor="white"
+              backgroundColor="#79A783"
+              title="Registros"
               info=""
             />
           </Link>

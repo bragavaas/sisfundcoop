@@ -1,0 +1,19 @@
+import React from 'react';
+
+function Error({ statusCode }) {
+  return (
+    <div>
+      {statusCode
+        ? `An error ${statusCode} occurred on server`
+        : 'An error occurred on client'}
+    </div>
+  );
+}
+
+Error.getInitialProps = async (ctx) => {
+  const { res, err } = ctx;
+  const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
+  return { statusCode };
+};
+
+export default Error;

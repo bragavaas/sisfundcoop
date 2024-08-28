@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Input, useDisclosure } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import { Campanha, Participantes } from "@prisma/client";
+import { Campanha, Participante } from "@prisma/client";
 import { SearchIcon } from "@/components/icons";
 
 export default function Adicionar() {
@@ -14,8 +14,9 @@ export default function Adicionar() {
   const [registroDataRetirada, setregistroDataRetirada] = useState("");
   const [registroHorarioRetirada, setregistroHorarioRetirada] = useState("");
   const [selectedCampanha, setSelectedCampanha] = useState<number | null>(null);
-  const [campanhas, setCampanhas] = useState<(Campanha & { participantes: Participantes[] })[]>([]);
+  const [campanhas, setCampanhas] = useState<(Campanha & { participantes: Participante[] })[]>([]);
   const [matriculaValid, setMatriculaValid] = useState<boolean | null>(null);
+  const [participanteRegistrado, setParticipanteRegistrado] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetchCampanhas();
@@ -27,7 +28,11 @@ export default function Adicionar() {
     console.log("Selected campanha:", selectedId);
   };
 
-  const handleCheckMatricula = () => {
+  const handleCancelBtn = () => {
+    router.push("/registros");
+  };
+
+  const handleCheckMatricula = async () => {
     if (selectedCampanha === null || !registroMatricula) {
       setMatriculaValid(false);
       return;
@@ -42,17 +47,36 @@ export default function Adicionar() {
     const participante = campanha.participantes.find(
       (p) => p.matricula === registroMatricula
     );
-    if (participante) {
-      setMatriculaValid(true);
-      setregistroNomeDoParticipante(participante.nome);
-    } else {
-      setMatriculaValid(false);
+    try {
+      const res_participante_registrado = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/check-registro?matricula=${registroMatricula}&campanhaId=${campanha.id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data_participante_registrado = await res_participante_registrado.json();
+      if (participante) {
+        if(data_participante_registrado.participante_ja_retirou){
+          setMatriculaValid(true);
+          setParticipanteRegistrado(true);
+          setregistroNomeDoParticipante(participante.nome);
+          return;
+        }else{
+          setMatriculaValid(true);
+          setParticipanteRegistrado(false);
+          setregistroNomeDoParticipante(participante.nome);
+        }
+      } else {
+        setMatriculaValid(false);
+      }
+    } catch (error) {
+      console.error("Error checking matricula:", error);
     }
-  };
+  }
 
   const fetchCampanhas = async () => {
     try {
-      const response = await fetch("/api/campanhas");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/campanhas`);
       const data = await response.json();
       setCampanhas(data);
     } catch (error) {
@@ -65,17 +89,25 @@ export default function Adicionar() {
       console.error("No campanha selected");
       return;
     }
+    const now = new Date(); // Get the current date and time
+
+    // Format the date in DD-MM-YYYY
+    const currentDate = 
+        `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+    
+    // Extract the time in HH:MM:SS format
+    const currentTime = now.toTimeString().split(' ')[0];
 
     const registroData = {
       nomeDoParticipante: registroNomeDoParticipante,
       matriculaDoParticipante: registroMatricula,
-      dataRetirada: registroDataRetirada,
-      horarioRetirada: registroHorarioRetirada,
+      dataRetirada: currentDate, // Use formatted date
+      horarioRetirada: currentTime, // Use formatted time
       campanhaId: selectedCampanha, // Use selectedCampanha for campanha ID
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/registros", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/registros`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,10 +159,16 @@ export default function Adicionar() {
               </select>
             </div>
             {matriculaValid === true && (
-              <p className="text-green-500">Matrícula válida</p>
+              <p className="text-green-500">Matrícula válida, Cooperado está registrado na Campanha.</p>
             )}
             {matriculaValid === false && (
-              <p className="text-red-500">Matrícula inválida, tente novamente.</p>
+              <p className="text-red-500">Matrícula inválida, Cooperado não está registrado na Campanha.</p>
+            )}
+            {participanteRegistrado === true && (
+              <p className="text-red-500">ATENÇÃO: Cooperado <b>JÁ RETIROU SEU BRINDE.</b></p>
+            )}
+            {participanteRegistrado === false && (
+              <p className="text-green-500">Cooperado liberado para retirar o brinde.</p>
             )}
             <div className="flex flex-row gap-2">
               <Button
@@ -158,29 +196,15 @@ export default function Adicionar() {
               />
             </div>
 
-            <div className="flex flex-row gap-4">
-              <Input
-                type="date"
-                label="Data da Retirada"
-                value={registroDataRetirada}
-                onChange={(e) => setregistroDataRetirada(e.target.value)}
-              />
-              <Input
-                type="time"
-                label="Horário da Retirada"
-                value={registroHorarioRetirada}
-                onChange={(e) => setregistroHorarioRetirada(e.target.value)}
-              />
-            </div>
-
             <div className="flex flex-row gap-4 justify-end">
-              <Button color="danger" variant="bordered">
+              <Button color="danger" variant="bordered" onClick={handleCancelBtn}>
                 Cancelar
               </Button>
               <Button
                 color="primary"
                 variant="bordered"
                 onClick={handleAddRegistro}
+                disabled={participanteRegistrado === true}
               >
                 Cadastrar Retirada
               </Button>

@@ -1,5 +1,5 @@
 # 1. Use an official Node.js runtime as the base image
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 2. Set the working directory inside the container
 WORKDIR /app
@@ -12,6 +12,9 @@ RUN npm install
 
 # 5. Copy the rest of the application to the working directory
 COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # 6. Build the Next.js app
 RUN npm run build

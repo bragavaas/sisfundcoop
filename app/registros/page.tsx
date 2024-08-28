@@ -10,6 +10,7 @@ import {
   BsFillGiftFill,
   BsFileBarGraphFill,
   BsFillAwardFill,
+  BsFileTextFill,
 } from "react-icons/bs";
 import { Registro } from "./RegistroColumns";
 import { useDisclosure } from "@nextui-org/modal";
@@ -21,11 +22,7 @@ export default function RegistrosPage() {
   const [selectedRegistro, setSelectedRegistro] = useState<Registro | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter(); // Moved useRouter inside the component
-
-  const handleEdit = (registro: Registro) => {
-    setSelectedRegistro(registro);
-    onNewOpen();
-  };
+  const [cardDataInfo, setCardDataInfo] = useState("");
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -33,7 +30,7 @@ export default function RegistrosPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/registros?id=${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/registros?id=${id}`, {
         method: "DELETE",
       });
 
@@ -55,7 +52,7 @@ export default function RegistrosPage() {
   useEffect(() => {
     async function fetchRegistros() {
       try {
-        const response = await fetch("http://localhost:3000/api/registros");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/registros`);
         if (!response.ok) {
           throw new Error("Failed to fetch registros");
         }
@@ -71,6 +68,15 @@ export default function RegistrosPage() {
 
   return (
     <section style={{ width: "80vw" }} className="">
+        <div className="flex w-full gap-4">
+            <Card
+              icon={BsFileTextFill}
+              iconColor="white"
+              backgroundColor="#79A783"
+              title="Retiradas"
+              info={registros.length.toString()}
+            />
+        </div>
       <div className="flex flex-col space-y-5 text-left">
         <h1 className="text-lg">Gerenciamento de Retiradas</h1>
         <div
@@ -109,7 +115,6 @@ export default function RegistrosPage() {
         <div style={{ width: "80vw" }}>
           <TableRegistro
             registros={filteredRegistros}
-            onEdit={handleEdit}
             onDelete={handleDelete}
           />
         </div>

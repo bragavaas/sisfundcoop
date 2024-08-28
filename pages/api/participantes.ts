@@ -10,10 +10,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (id) {
         // Get a single Participantes by campanha ID
         try {
-          const participantes = await prisma.participantes.findMany({
+          const participantes = await prisma.participante.findMany({
             where: { campanhaId: Number(id) },
           });
-          res.status(200).json(participantes);
+          res.status(200).json(participantes.length);
         } catch (error) {
           res.
           status(500).json({ error: "Error fetching participantes" });

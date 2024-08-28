@@ -28,29 +28,30 @@ export default function Adicionar() {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const jsonData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-      
-      // Assuming the first row is the header
-      const rows = jsonData.slice(1);
-      
-      rows.forEach((row: any[]) => {
-        const nome = row[0]; // Trim spaces to avoid issues
-        const matricula = row[1];
-        if (nome && matricula) {
-          handleAddMultipleParticipantes(nome, String(matricula));
+    if (!file){
+      console.log("no file");
+    }else{
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target) {
+          const data = e.target.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(sheet);
+          rows.forEach((row: any) => {
+            const nome = row.NOME; // Trim spaces to avoid issues
+            const matricula = row.MAT_SET;
+            if (nome && matricula) {
+              handleAddMultipleParticipantes(String(nome), String(matricula));
+            }
+          });
         }
-      });
-    };
-    reader.readAsArrayBuffer(file);
+      };
+      reader.readAsBinaryString(file);
+    }
   };
+  
 
   const handleAddMultipleParticipantes = (nome: string, matricula: string) => {
     const newParticipante = {
@@ -88,8 +89,8 @@ export default function Adicionar() {
     const campanhaData = {
       nome: campanhaNome,
       brinde: campanhaBrinde,
-      dataInicio: campanhaDataInicio,
-      dataTermino: campanhaDataTermino,
+      dataInicio: campanhaDataInicio, // Format date to ISO
+      dataTermino: campanhaDataTermino, // Format date to ISO
       participantes: participantes,
       numeroParticipantes: participantes.length,
     };
@@ -97,7 +98,7 @@ export default function Adicionar() {
     console.log("Campanha Data: ", JSON.stringify(campanhaData, null, 2));
   
     try {
-      const response = await fetch("http://localhost:3000/api/campanhas", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/campanhas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,6 +118,7 @@ export default function Adicionar() {
       console.error("Error adding campanha:", error);
     }
   };
+  
 
   const setNome = (value: string) => {
     setNovoParticipanteNome(value);
@@ -190,7 +192,6 @@ export default function Adicionar() {
                           </ModalHeader>
                           <ModalBody>
                             <Input
-                              autoFocus
                               placeholder="insira o nome do participante"
                               variant="bordered"
                               value={novoParticipanteNome}

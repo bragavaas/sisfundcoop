@@ -6,11 +6,10 @@ import { Campanha } from "../app/campanhas/CampanhaColumns";
 
 type TableCampanhaProps = {
   campanhas: Campanha[];
-  onEdit: (campanha: Campanha) => void;
   onDelete: (id: string) => void;
 };
 
-const TableCampanha: React.FC<TableCampanhaProps> = ({ campanhas, onEdit, onDelete }) => {
+const TableCampanha: React.FC<TableCampanhaProps> = ({ campanhas, onDelete }) => {
   return (
     <Table aria-label="Campanha Table">
       <TableHeader>
@@ -28,9 +27,7 @@ const TableCampanha: React.FC<TableCampanhaProps> = ({ campanhas, onEdit, onDele
             <TableCell>{campanha.dataTermino}</TableCell>
             <TableCell>{campanha.numeroParticipantes}</TableCell>
             <TableCell>
-              {/* Add Edit and Delete buttons */}
-              <Button color="primary" onPress={() => onEdit(campanha)}>Editar</Button>
-              <Button color="danger" onPress={() => onDelete(campanha.id)}>Deletar</Button>
+              <Button color="danger" onPress={() => onDelete(campanha.id.toString())}>Deletar</Button>
             </TableCell>
           </TableRow>
         ))}

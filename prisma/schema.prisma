@@ -10,19 +10,19 @@ generator client {
 model Campanha {
   id                  Int             @id @default(autoincrement())
   nome                String
-  dataInicio          String
-  dataTermino         String
-  numeroParticipantes Int   @default(0)
-  participantes       Participantes[]
-  brinde              String   @default("")
+  dataInicio          String        
+  dataTermino         String        
+  numeroParticipantes Int             @default(0)
+  participantes       Participante[]  // Fixed model name to match plural
+  brinde              String          @default("")
   registros           Registro[]
   @@index([id], map: "campanha_id_unique")
 }
 
-model Participantes {
+model Participante {  // Fixed model name to match singular
   id         Int       @id @default(autoincrement())
-  nome       String @default("")
-  matricula  String @default("")
+  nome       String    @default("")
+  matricula  String    @default("")
   campanha   Campanha? @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
   campanhaId Int?
 }
@@ -33,5 +33,6 @@ model Registro {
   matriculaDoParticipante String @default("")
   dataRetirada       String    @default("")
   horarioRetirada    String    @default("")
+  campanhaId         Int?      // Added missing foreign key field
   campanha           Campanha? @relation(fields: [campanhaId], references: [id])
 }
