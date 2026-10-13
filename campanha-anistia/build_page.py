@@ -138,6 +138,7 @@ SHARED = {
 _photos_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "photos.json")
 PHOTOS = json.load(open(_photos_path)) if os.path.exists(_photos_path) else []
 UPLOADS = "https://fundcoop.com.br/wp-content/uploads/"
+SLOT_COUNT = len(PHOTOS) or 45
 
 
 def slot(n):
@@ -154,8 +155,12 @@ def slot(n):
 
 
 grid = section("s-grid", [
-    column("c-grid", 100, [slot(n) for n in range(1, 46)], align="center",
-           space_between_widgets=24),
+    column("c-grid", 100, [slot(n) for n in range(1, SLOT_COUNT + 1)], align="center",
+           space_between_widgets=24,
+           # Sem isto a figura com legenda encolhe até a largura natural da foto
+           # e fotos em pé/deitadas ficam com larguras diferentes.
+           custom_css=("selector .fc-slot figure.wp-caption{display:block;width:100%;margin:0;}\n"
+                       "selector .fc-slot figure.wp-caption > a{display:block;}")),
 ], layout="boxed", content_width=px(1170), gap="no",
     padding=dims(0, 0, 50, 0), padding_tablet=dims(0, 14, 40, 14), padding_mobile=dims(0, 14, 30, 14))
 
