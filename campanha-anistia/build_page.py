@@ -1,7 +1,10 @@
 """Gera o _elementor_data da página "Campanha Anistia" (fundcoop.com.br).
 
-Uso: python3 build_page.py <placeholder_id> <placeholder_url> > page.json
+Uso: python3 build_page.py <placeholder_id> <placeholder_url> <top10_id> <top10_url> [data|shared]
 Estrutura legada Section/Column (o site não tem Flexbox Container ativo).
+
+Layout: imagem TOP 10 no início da página, depois a grade com os 45
+demais ganhadores e a linha de fechamento.
 """
 import hashlib
 import json
@@ -9,14 +12,11 @@ import sys
 
 PH_ID = int(sys.argv[1])
 PH_URL = sys.argv[2]
-
-ART_ID = 1746  # CAMPANHA 2026 (arte enviada pela cooperativa)
-ART_URL = "https://fundcoop.com.br/wp-content/uploads/2026/06/CAMPANHA-2026.jpeg"
+TOP_ID = int(sys.argv[3])
+TOP_URL = sys.argv[4]
 
 NAVY = "#271E59"   # títulos da home
-TEAL = "#0EBD9E"   # títulos dos cards de aviso da home
 GRAY = "#707A8C"   # texto corrido da home
-CARD = "#00850D2B" # fundo dos cards de aviso da home
 
 _seen = set()
 
@@ -83,24 +83,12 @@ def lead(key, html, size=20, align="center", color=GRAY):
     })
 
 
-# 1. Título --------------------------------------------------------------------
-intro = section("s-intro", [
-    column("c-intro", 100, [
-        big_heading("h-title", "Campanha Anistia 2026", "h1"),
-        lead("t-intro",
-             "<p>Duas campanhas, mais benefícios para você: a <strong>Anistia FundCoop</strong>, "
-             "para ex-cooperados retornarem à cooperativa, e a campanha <strong>Indique e Jogue Junto</strong>, "
-             "que premiou quem indicou novos cooperados. Confira abaixo a arte da campanha e as fotos dos ganhadores.</p>"),
-    ]),
-], layout="boxed", content_width=px(890), gap="no",
-    padding=dims(60, 0, 30, 0), padding_tablet=dims(50, 20, 20, 20), padding_mobile=dims(40, 20, 10, 20))
-
-# 2. Arte da campanha ------------------------------------------------------------
-art = section("s-art", [
-    column("c-art", 100, [
-        widget("i-art", "image", {
-            "image": {"id": ART_ID, "url": ART_URL, "alt": "Campanha FundCoop 2026: Indique e Jogue Junto e Anistia da FundCoop", "source": "library"},
-            "image_size": "large", "align": "center",
+# 1. TOP 10 (imagem enviada pela cooperativa) ------------------------------------
+top10 = section("s-top10", [
+    column("c-top10", 100, [
+        widget("i-top10", "image", {
+            "image": {"id": TOP_ID, "url": TOP_URL, "alt": "Conheça os ganhadores: TOP 10 da campanha", "source": "library"},
+            "image_size": "full", "align": "center",
             "width": {"unit": "%", "size": 100, "sizes": []},
             "image_border_radius": radius(10),
             "image_box_shadow_box_shadow_type": "yes",
@@ -108,50 +96,13 @@ art = section("s-art", [
             "link_to": "file", "open_lightbox": "yes",
         }),
     ]),
-], layout="boxed", content_width=px(960), gap="no",
-    padding=dims(20, 0, 60, 0), padding_tablet=dims(10, 20, 40, 20), padding_mobile=dims(10, 20, 30, 20))
+], layout="boxed", content_width=px(720), gap="no",
+    padding=dims(60, 0, 70, 0), padding_tablet=dims(40, 20, 50, 20), padding_mobile=dims(30, 16, 40, 16))
 
-
-# 3. Cards das duas campanhas (estilo dos cards de aviso da home) ---------------
-def card(key, title, html, side):
-    margin = dims(0, 15, 0, 0) if side == "left" else dims(0, 0, 0, 15)
-    return column(key, 50, [
-        widget(key + "-h", "heading", {
-            "title": title, "header_size": "h2", "align": "start", "title_color": TEAL,
-            **typo("typography", "Syne", 700, 30, 26, 26, lh=1.1),
-        }),
-        lead(key + "-t", html, size=18, align="start", color=NAVY),
-    ],
-        background_background="classic", background_color=CARD,
-        border_radius=radius(20),
-        padding=dims(35, 45, 25, 45), padding_tablet=dims(25, 30, 15, 30), padding_mobile=dims(25, 25, 15, 25),
-        margin=margin, margin_tablet=margin,
-        margin_mobile=dims(0, 0, 30, 0) if side == "left" else dims(0, 0, 0, 0),
-        animation="fadeInLeft" if side == "left" else "fadeInRight")
-
-
-cards = section("s-cards", [
-    card("c-indique", "Indique e Jogue Junto",
-         "<p>De <strong>01 a 30 de junho de 2026</strong>, os cooperados indicaram novos cooperados e concorreram a prêmios. "
-         "Premiação para os 10 cooperados com maior pontuação:</p>"
-         "<ul>"
-         "<li><strong>1º lugar:</strong> camisa oficial + R$ 300 em capital social</li>"
-         "<li><strong>2º lugar:</strong> camisa oficial + R$ 200 em capital social</li>"
-         "<li><strong>3º lugar:</strong> camisa oficial + R$ 100 em capital social</li>"
-         "<li><strong>4º ao 10º lugar:</strong> kit churrasco para 10 pessoas</li>"
-         "</ul>", "left"),
-    card("c-anistia", "Anistia da FundCoop",
-         "<p>Para ex-cooperados retornarem à FundCoop <strong>sem integralização de capital</strong> "
-         "e ainda participarem da promoção Indique e Jogue Junto.</p>"
-         "<p>A Anistia foi prorrogada até <strong>30 de julho de 2026</strong>. "
-         "Obrigado a todos que voltaram a fazer parte da nossa cooperativa!</p>", "right"),
-], layout="boxed", content_width=px(1170), gap="no", structure="20",
-    padding=dims(0, 0, 80, 0), padding_tablet=dims(0, 20, 50, 20), padding_mobile=dims(0, 20, 40, 20))
-
-# 4. Ganhadores -------------------------------------------------------------------
+# 2. Demais ganhadores -------------------------------------------------------------------
 winners_head = section("s-win-head", [
     column("c-win-head", 100, [
-        big_heading("h-win", "Nossos Ganhadores", "h2"),
+        big_heading("h-win", "Demais Ganhadores", "h2"),
         lead("t-win", "<p>Parabéns a todos os ganhadores! Clique em uma foto para ampliar.</p>"),
     ]),
 ], layout="boxed", content_width=px(890), gap="no",
@@ -196,7 +147,7 @@ grid = section("s-grid", [
 ], layout="boxed", content_width=px(1170), gap="no",
     padding=dims(0, 0, 50, 0), padding_tablet=dims(0, 14, 40, 14), padding_mobile=dims(0, 14, 30, 14))
 
-# 5. Fechamento ------------------------------------------------------------------
+# 3. Fechamento ------------------------------------------------------------------
 outro = section("s-outro", [
     column("c-outro", 100, [
         lead("t-outro", "<p><strong>Mais informações?</strong> Procure a cooperativa.</p>"),
@@ -204,10 +155,10 @@ outro = section("s-outro", [
 ], layout="boxed", content_width=px(890), gap="no",
     padding=dims(0, 0, 20, 0), padding_tablet=dims(0, 20, 20, 20))
 
-data = [intro, art, cards, winners_head, grid, outro]
+data = [top10, winners_head, grid, outro]
 
 if __name__ == "__main__":
-    mode = sys.argv[3] if len(sys.argv) > 3 else "data"
+    mode = sys.argv[5] if len(sys.argv) > 5 else "data"
     if mode == "shared":
         # Conteúdo que substitui SLOT_MARKER (sem as chaves externas do objeto).
         print(json.dumps(SHARED, separators=(",", ":"))[1:-1])
