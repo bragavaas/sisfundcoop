@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__WPVIBE__get_page_html"
+    ]
+  }
+}
