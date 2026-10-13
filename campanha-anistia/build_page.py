@@ -8,6 +8,7 @@ demais ganhadores e a linha de fechamento.
 """
 import hashlib
 import json
+import os
 import sys
 
 PH_ID = int(sys.argv[1])
@@ -132,10 +133,21 @@ SHARED = {
 }
 
 
+# Fotos dos ganhadores (photos.json: [[attachment_id, caminho em uploads], ...],
+# na ordem dos slots). Slots sem foto ficam com o placeholder.
+_photos_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "photos.json")
+PHOTOS = json.load(open(_photos_path)) if os.path.exists(_photos_path) else []
+UPLOADS = "https://fundcoop.com.br/wp-content/uploads/"
+
+
 def slot(n):
     label = f"Ganhador(a) {n:02d}"
+    if n <= len(PHOTOS):
+        img_id, img_url = PHOTOS[n - 1][0], UPLOADS + PHOTOS[n - 1][1]
+    else:
+        img_id, img_url = PH_ID, PH_URL
     return widget(f"slot-{n}", "image", {
-        "image": {"id": PH_ID, "url": PH_URL, "alt": label, "source": "library"},
+        "image": {"id": img_id, "url": img_url, "alt": label, "source": "library"},
         "caption": label,
         "_css_classes": "fc-slot",
     })
