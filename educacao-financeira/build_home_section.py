@@ -1,6 +1,7 @@
 """Gera a seção "Educação Financeira" do homepage (página 21) de fundcoop.com.br.
 
-Uso: python3 build_home_section.py <image_id> <image_url> > section.json
+Uso: python3 build_home_section.py <image_id> <image_url> <page_url> > section.json
+<page_url> é o endereço que o WordPress deu à página depois de publicada.
 Copia o padrão das seções "Simule seu empréstimo" (a68c2aa) e "Segurança e
 Garantia" (763d82f): seção → coluna → inner section 50/50 com título,
 texto com link no fim e imagem com cantos de 10px. Entra depois de 763d82f,
@@ -12,7 +13,8 @@ import sys
 
 IMG_ID = int(sys.argv[1])
 IMG_URL = sys.argv[2]
-PAGE_URL = "https://fundcoop.com.br/institucional/educacao-financeira/"
+PAGE_URL = sys.argv[3]
+assert PAGE_URL.startswith("https://fundcoop.com.br/") and "?" not in PAGE_URL, PAGE_URL
 
 _seen = set()
 
@@ -47,7 +49,7 @@ text = {
     "id": eid("text"), "elType": "widget", "widgetType": "text-editor", "elements": [],
     "settings": {
         "editor": ("<p>Cuidar do seu dinheiro é investir no seu futuro! Conheça o novo espaço de Educação Financeira "
-                   "da Fundcoop, com conteúdos, ferramentas e materiais para ajudar você a organizar o orçamento, "
+                   "da FundCoop, com conteúdos, ferramentas e materiais para ajudar você a organizar o orçamento, "
                    "controlar despesas, evitar o endividamento e usar o crédito com responsabilidade. "
                    f'<a href="{PAGE_URL}">Clique aqui e saiba mais.</a></p>'),
         "align": "justify", "text_color": "#707A8C",
@@ -60,10 +62,9 @@ text = {
 image = {
     "id": eid("image"), "elType": "widget", "widgetType": "image", "elements": [],
     "settings": {
-        "image": {"id": IMG_ID, "url": IMG_URL, "alt": "Educação Financeira na Prática - Fundcoop", "source": "library"},
+        "image": {"id": IMG_ID, "url": IMG_URL, "alt": "Educação Financeira na Prática - FundCoop", "source": "library"},
         "image_size": "large",
         "image_border_radius": {"unit": "px", "top": "10", "right": "10", "bottom": "10", "left": "10", "isLinked": True},
-        "link_to": "custom", "link": {"url": PAGE_URL, "is_external": "", "nofollow": "", "custom_attributes": ""},
     },
 }
 

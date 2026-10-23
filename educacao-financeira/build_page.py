@@ -1,22 +1,29 @@
 """Gera o _elementor_data da página "Educação Financeira" (fundcoop.com.br).
 
-Uso: python3 build_page.py [files.json] > page.json
+Uso: python3 build_page.py [files.json] [--final] > page.json
 files.json (opcional): {"pdf": url, "pptx": url, "xls": url} com os arquivos
-já enviados para a Biblioteca de Mídia. Sem ele os botões ficam com "#".
+já enviados para a Biblioteca de Mídia. Sem ele os botões ficam com "#";
+com --final o script recusa gerar a página se faltar algum arquivo.
 Estrutura legada Section/Column (o site não tem Flexbox Container ativo).
 """
 import hashlib
 import json
 import sys
 
-FILES = json.load(open(sys.argv[1])) if len(sys.argv) > 1 else {}
+ARGS = [a for a in sys.argv[1:] if a != "--final"]
+FILES = json.load(open(ARGS[0])) if ARGS else {}
 PDF_URL = FILES.get("pdf", "#")
 PPTX_URL = FILES.get("pptx", "#")
 XLS_URL = FILES.get("xls", "#")
+if "--final" in sys.argv:
+    for name, url in (("pdf", PDF_URL), ("pptx", PPTX_URL), ("xls", XLS_URL)):
+        assert url.startswith("https://fundcoop.com.br/wp-content/uploads/"), f"{name}: {url}"
 
 NAVY = "#271E59"   # títulos da home
-TEAL = "#0EBD9E"   # títulos dos cards de aviso da home
-TEAL_HOVER = "#07937A"
+# Verde primário do kit (contraste 8:1 com branco). O teal da home (#0EBD9E)
+# não passa no WCAG para texto branco nem para títulos sobre fundo claro.
+GREEN = "#0D5C3A"
+GREEN_HOVER = "#01490E"
 GRAY = "#707A8C"   # texto corrido da home
 CARD = "#00850D2B" # fundo dos cards de aviso da home
 
@@ -91,10 +98,13 @@ def text(key, html, size=20, align="justify", color=GRAY):
     })
 
 
-def button(key, label, url, outline=False):
+def button(key, label, url, outline=False, download=False):
+    # Downloads ficam na mesma aba (atributo download); o resto abre em nova aba.
+    link = {"url": url, "is_external": "" if download else "on", "nofollow": "",
+            "custom_attributes": "download|" if download else ""}
     s = {
         "text": label, "align": "left", "align_mobile": "center",
-        "link": {"url": url, "is_external": "on", "nofollow": "", "custom_attributes": ""},
+        "link": link,
         **typo("typography", "Syne", 700, 16, 15, 15, lh=1.2),
         "border_radius": radius(50),
         "text_padding": dims(14, 30, 14, 30),
@@ -102,19 +112,22 @@ def button(key, label, url, outline=False):
         "button_background_hover_background": "classic",
     }
     if outline:
-        s.update({"button_text_color": TEAL, "background_color": "#FFFFFF",
-                  "hover_color": "#FFFFFF", "button_background_hover_color": TEAL,
-                  "border_border": "solid", "border_width": radius(2), "border_color": TEAL})
+        # Padding 2px menor para compensar a borda e igualar a altura dos botões cheios.
+        s.update({"button_text_color": GREEN, "background_color": "#FFFFFF",
+                  "hover_color": "#FFFFFF", "button_background_hover_color": GREEN,
+                  "border_border": "solid", "border_width": radius(2), "border_color": GREEN,
+                  "text_padding": dims(12, 28, 12, 28)})
     else:
-        s.update({"button_text_color": "#FFFFFF", "background_color": TEAL,
-                  "hover_color": "#FFFFFF", "button_background_hover_color": TEAL_HOVER})
+        s.update({"button_text_color": "#FFFFFF", "background_color": GREEN,
+                  "hover_color": "#FFFFFF", "button_background_hover_color": GREEN_HOVER})
     return widget(key, "button", s)
 
 
-def card(key, size, widgets, side):
+def card(key, size, widgets, side, stack_tablet=False):
     # Card branco com sombra suave, como os cards de "Benefícios exclusivos" da home.
     margins = {"left": dims(0, 12, 0, 0), "mid": dims(0, 6, 0, 6), "right": dims(0, 0, 0, 12)}[side]
-    return column(key, size, widgets,
+    extra = {"_inline_size_tablet": 100, "margin_tablet": dims(0, 0, 20, 0)} if stack_tablet else {}
+    return column(key, size, widgets, **extra,
                   content_position="top",
                   background_background="classic", background_color="#FFFFFF",
                   border_radius=radius(10),
@@ -139,7 +152,7 @@ intro = section("s-intro", [
     column("c-intro", 100, [
         big_heading("h-title", "Educação Financeira", "h1"),
         heading("h-tagline", "Cuidar do seu dinheiro é investir no seu futuro!", "h2",
-                "Syne", 700, 28, 24, 22, TEAL, pad_b=10),
+                "Syne", 700, 28, 24, 22, GREEN, pad_b=10),
         text("t-intro",
              "<p>Na Fundcoop, acreditamos que a educação financeira promove qualidade de vida, segurança e "
              "tranquilidade. Por isso, incentivamos nossos cooperados a desenvolver uma relação consciente com o "
@@ -154,7 +167,7 @@ intro = section("s-intro", [
 # 2. Por onde começar? (card verde claro, como os avisos da home) -------------------
 start = section("s-start", [
     column("c-start", 100, [
-        heading("h-start", "Por onde começar?", "h2", "Syne", 700, 30, 26, 26, TEAL, align="start"),
+        heading("h-start", "Por onde começar?", "h2", "Syne", 700, 30, 26, 26, GREEN, align="start"),
         text("t-start",
              "<p>Conheça sua realidade financeira: registre ganhos e despesas, acompanhe os gastos, identifique "
              "excessos e estabeleça metas. Com planejamento e disciplina, é possível equilibrar o orçamento, criar "
@@ -191,17 +204,17 @@ materials = section("s-mat", [
     card("c-mat-ppt", 50, [
         card_title("h-mat-ppt", "Apresentação: Educação Financeira na Prática"),
         card_text("t-mat-ppt",
-                  "<p>Uso consciente do crédito, contas em vários bancos, renda extra e dicas para fazer escolhas "
-                  "financeiras mais conscientes.</p>"),
+                  "<p>Os riscos do mau uso do crédito, as vantagens e desvantagens de ter contas em vários bancos, "
+                  "renda extra e dicas para fazer escolhas financeiras mais conscientes.</p>"),
         button("b-mat-pdf", "Ver apresentação (PDF)", PDF_URL),
-        button("b-mat-pptx", "Baixar em PowerPoint", PPTX_URL, outline=True),
+        button("b-mat-pptx", "Baixar em PowerPoint", PPTX_URL, outline=True, download=True),
     ], "left"),
     card("c-mat-xls", 50, [
         card_title("h-mat-xls", "Planilha de Orçamento Familiar"),
         card_text("t-mat-xls",
                   "<p>Planilha em Excel para planejar as despesas domésticas do mês, registrar entradas e saídas, "
                   "acompanhar o saldo e a posição dos seus investimentos.</p>"),
-        button("b-mat-xls", "Baixar planilha (Excel)", XLS_URL),
+        button("b-mat-xls", "Baixar planilha (Excel)", XLS_URL, download=True),
     ], "right"),
 ], width=960, structure="20",
     padding=dims(10, 0, 40, 0), padding_tablet=dims(10, 20, 30, 20), padding_mobile=dims(10, 20, 20, 20))
@@ -231,8 +244,8 @@ LINKS = [
     ("bcb-biblioteca", "Biblioteca de Cidadania Financeira",
      "Materiais educativos sobre finanças pessoais do Banco Central do Brasil.",
      "Acessar biblioteca", "https://www.bcb.gov.br/cidadaniafinanceira/cidadania_biblioteca"),
-    ("susep-planilhas", "Planilhas Financeiras (SUSEP)",
-     "Planilhas para organizar suas finanças, do programa Meu Futuro Seguro da SUSEP.",
+    ("susep-planilhas", "Planilhas Financeiras",
+     "Planilhas para organizar suas finanças, disponíveis na área Meu Futuro Seguro do site da SUSEP.",
      "Acessar planilhas", "https://www.gov.br/susep/pt-br/assuntos/meu-futuro-seguro/ferramentas/planilhas-financeiras-1"),
 ]
 
@@ -241,7 +254,7 @@ links = section("s-links", [
         card_title(f"h-{k}", title),
         card_text(f"t-{k}", f"<p>{desc}</p>"),
         button(f"b-{k}", label, url),
-    ], side)
+    ], side, stack_tablet=True)
     for (k, title, desc, label, url), side in zip(LINKS, ["left", "mid", "right"])
 ], width=1170, structure="30",
     padding=dims(10, 0, 60, 0), padding_tablet=dims(10, 20, 40, 20), padding_mobile=dims(10, 20, 30, 20))
@@ -251,7 +264,7 @@ outro = section("s-outro", [
     column("c-outro", 100, [
         heading("h-outro",
                 "Fundcoop — Educação financeira para uma vida mais equilibrada, consciente e cheia de possibilidades!",
-                "p", "Syne", 700, 24, 20, 18, TEAL, lh=1.4),
+                "p", "Syne", 700, 24, 20, 18, GREEN, lh=1.4),
     ]),
 ], padding=dims(0, 0, 40, 0), padding_tablet=dims(0, 20, 30, 20))
 
